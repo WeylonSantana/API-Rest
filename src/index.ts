@@ -1,7 +1,9 @@
 import Express, { Request, Response, NextFunction } from 'express';
+import statusRouter from './routes/status.route';
 import usersRouter from './routes/users.route';
 
 const app = Express();
+app.use(statusRouter);
 app.use(usersRouter);
 app.use(Express.json());
 app.use(Express.urlencoded({ extended: true }));
