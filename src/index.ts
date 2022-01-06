@@ -1,6 +1,8 @@
 import Express, { Request, Response, NextFunction } from 'express';
+import usersRouter from './routes/users.route';
 
 const app = Express();
+app.use(usersRouter);
 
 app.get('/status', (req: Request, res: Response, next: NextFunction) => {
   res.status(200).send({ status: 'ok' });
