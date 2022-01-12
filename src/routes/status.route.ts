@@ -1,11 +1,10 @@
-import { Router, Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response, Router } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
-const statusRouter = Router();
+const statusRoute = Router();
 
-//Making a GET request to /status will return status
-statusRouter.get('/status', (req: Request, res: Response, next: NextFunction) => {
+statusRoute.get('/status', (req: Request, res: Response, next: NextFunction) => {
   res.sendStatus(StatusCodes.OK);
 });
 
-export default statusRouter;
+export default statusRoute;

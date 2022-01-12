@@ -1,8 +1,8 @@
 import db from '../db';
+import DatabaseError from '../models/errors/database.error.model';
 import User from '../models/user.model';
-import DatabaseError from '../models/errors/database.errors.model';
 
-class UserRepository {
+class userRepository {
   async findAllUsers(): Promise<User[]> {
     const query = `
     SELECT uuid, username
@@ -13,68 +13,77 @@ class UserRepository {
     return rows || [];
   }
 
-  async findUserByUuid(uuid: string): Promise<User> {
+  async findUserById(id: string): Promise<User | null> {
     try {
       const query = `
-      SELECT uuid, username
-      FROM application_user
-      WHERE uuid = $1
+        SELECT uuid, username
+        FROM application_user
+        WHERE uuid = $1
       `;
 
-      const { rows } = await db.query<User>(query, [uuid]);
-      return rows[0] || null;
-    } catch (e) {
-      throw new DatabaseError('Erro na consulta por ID', e);
+      const values = [id];
+      const { rows } = await db.query<User>(query, values);
+      const [user] = rows;
+
+      return user || null;
+    } catch (error) {
+      throw new DatabaseError('Error ao tentar encontrar o usuário por ID', error);
     }
   }
 
-  async findUserByUsernameAndPassword(username: string, password: string): Promise<User | null> {
+  async findByUsernameAndPassword(username: string, password: string): Promise<User | null> {
     try {
       const query = `
       SELECT uuid, username
       FROM application_user
       WHERE username = $1
-      AND password = crypt($2, gen_salt('bf'))
-      `;
+      AND password = crypt($2, 'my_salt')
+    `;
 
       const values = [username, password];
       const { rows } = await db.query<User>(query, values);
       const [user] = rows;
+
       return user || null;
     } catch (error) {
-      throw new DatabaseError('Erro na consulta por usuário e senha', error);
+      throw new DatabaseError('Error ao tentar encontrar o usuário por username e password', error);
     }
   }
 
-  async create(user: User): Promise<String> {
+  async create(user: User): Promise<string> {
     const query = `
-    INSERT INTO application_user (username, password)
-    VALUES ($1, crypt($2, gen_salt('bf')))
+    INSERT INTO application_user(username, password)
+    VALUES($1, crypt($2, 'my_salt'))
     RETURNING uuid
     `;
 
-    const { rows } = await db.query<{ uuid: string }>(query, [user.username, user.password]);
+    const values = [user.username, user.password];
+    const { rows } = await db.query<{ uuid: string }>(query, values);
     const [newUser] = rows;
+
     return newUser.uuid;
   }
 
   async update(user: User): Promise<void> {
     const query = `
     UPDATE application_user
-    SET username = $1, password = crypt($2, gen_salt('bf'))
+    SET username = $1, password = crypt($2, 'my_salt')
     WHERE uuid = $3
     `;
 
-    await db.query(query, [user.username, user.password, user.uuid]);
+    const values = [user.username, user.password, user.uuid];
+    await db.query(query, values);
   }
 
-  async deleteUser(uuid: string): Promise<void> {
+  async delete(id: string): Promise<void> {
     const query = `
     DELETE FROM application_user
     WHERE uuid = $1
     `;
 
-    await db.query(query, [uuid]);
+    const values = [id];
+    await db.query(query, values);
   }
 }
-export default new UserRepository();
+
+export default new userRepository();

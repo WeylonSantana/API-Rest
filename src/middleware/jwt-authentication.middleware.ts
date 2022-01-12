@@ -1,14 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
-import ForbiddenError from '../models/errors/forbidden.error.model';
 import JWT from 'jsonwebtoken';
-import userRepository from '../repositories/user.repository';
+import ForbiddenError from '../models/errors/forbidden.error.model';
 
 export default async function jwtAuthenticationMiddleware(req: Request, res: Response, next: NextFunction) {
   try {
     const authorizationHeader = req.headers['authorization'];
 
     if (!authorizationHeader) {
-      throw new ForbiddenError('Credenciais não fornecidas');
+      throw new ForbiddenError('Está faltando o Authorization header');
     }
 
     const [authenticationType, token] = authorizationHeader.split(' ');
@@ -18,16 +17,13 @@ export default async function jwtAuthenticationMiddleware(req: Request, res: Res
     }
 
     try {
-      const tokenPayload = JWT.verify(token, process.env.JWT_SECRET || 'secret');
+      const tokenPayload = JWT.verify(token, 'my_secret_key');
 
-      if (typeof tokenPayload !== 'object' && !tokenPayload.sub) {
-        throw new ForbiddenError('Token inválido');
+      if (typeof tokenPayload !== 'object' || !tokenPayload.sub) {
+        throw new ForbiddenError('Token ou Subject inválido');
       }
 
-      const user = {
-        uuid: tokenPayload.sub,
-        username: tokenPayload.username,
-      };
+      const user = { uuid: tokenPayload.sub, username: tokenPayload.username };
       req.user = user;
 
       next();

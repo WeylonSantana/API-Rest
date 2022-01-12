@@ -1,27 +1,26 @@
-import Express, { Request, Response, NextFunction } from 'express';
-import bearerAuthenticationMiddleware from './middleware/jwt-authentication.middleware';
+import express from 'express';
 import errorHandler from './middleware/erro-handler.middleware';
-import authorizationRouter from './routes/authorization.route';
-import statusRouter from './routes/status.route';
-import usersRouter from './routes/users.route';
 import jwtAuthenticationMiddleware from './middleware/jwt-authentication.middleware';
+import authorizationRoute from './routes/authorization.route';
+import statusRoute from './routes/status.route';
+import usersRoute from './routes/users.route';
 
-const app = Express();
+const app = express();
 
-app.use(Express.json());
-app.use(Express.urlencoded({ extended: true }));
+//Configurações da aplicação
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use(statusRouter);
-app.use(authorizationRouter);
+//Configurações das rotas
+app.use(statusRoute);
+app.use(authorizationRoute);
 app.use(jwtAuthenticationMiddleware);
-app.use(usersRouter);
+app.use(usersRoute);
 
+//Configurações dos erros handle
 app.use(errorHandler);
 
-app.get('/status', (req: Request, res: Response, next: NextFunction) => {
-  res.status(200).send({ status: 'ok' });
-});
-
+//Inicialização do servidor
 app.listen(3000, () => {
   console.log('Listening on port 3000');
 });
